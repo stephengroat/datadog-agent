@@ -125,7 +125,9 @@ func (m *Module) Start() error {
 
 	if m.selfTester.Enabled {
 		if err := m.doSelfTest(); err != nil {
-			log.Errorf("failed to run e2e injection test: %v", err)
+			log.Errorf("failed to run self-test: %v", err)
+		} else {
+			log.Debugf("Successfully completed self-test")
 		}
 	}
 
@@ -352,7 +354,6 @@ func (m *Module) doSelfTest() error {
 		return err
 	}
 
-	log.Debugf("Successfully run e2e injection test")
 	return nil
 }
 
