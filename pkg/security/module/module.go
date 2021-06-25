@@ -350,11 +350,7 @@ func (m *Module) doSelfTest() error {
 		return err
 	}
 
-	if err := m.selfTester.selfTestChmod(targetFilePath); err != nil {
-		return err
-	}
-
-	return nil
+	return m.selfTester.selfTestChmod(targetFilePath)
 }
 
 // Close the module
