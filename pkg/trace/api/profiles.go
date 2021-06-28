@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -9,7 +10,12 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 	"time"
+
+	"github.com/DataDog/datadog-agent/pkg/tagger"
+
+	"github.com/DataDog/datadog-agent/pkg/util/fargate"
 
 	"github.com/DataDog/datadog-agent/pkg/config"
 	"github.com/DataDog/datadog-agent/pkg/trace/info"
@@ -69,6 +75,16 @@ func (r *HTTPReceiver) profileProxyHandler() http.Handler {
 		return errorHandler(err)
 	}
 	tags := fmt.Sprintf("host:%s,default_env:%s", r.conf.Hostname, r.conf.DefaultEnv)
+
+	// NB: Fargate is handled as an exceptional case
+	if fargate.IsFargateInstance(context.TODO()) {
+		orchestratorTag := fmt.Sprintf("orchestrator:fargate_%s",
+			strings.ToLower(string(fargate.GetOrchestrator(context.TODO()))))
+		tags = tags + "," + orchestratorTag
+		// TODO: get fargate info like cluster ARN and task ARN
+		fargateTags, _ := tagger.OrchestratorScopeTag()
+		fmt.Printf("fargate tags: %v", fargateTags)
+	}
 	return newProfileProxy(r.conf.NewHTTPTransport(), targets, keys, tags)
 }
 
