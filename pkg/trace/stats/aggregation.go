@@ -33,6 +33,14 @@ type Aggregation struct {
 	Synthetics bool
 }
 
+// PayloadAggregationKey specifies the key by which a payload is aggregated.
+type PayloadAggregationKey struct {
+	Env         string
+	Hostname    string
+	Version     string
+	ContainerID string
+}
+
 func getStatusCode(s *pb.Span) uint32 {
 	strC := traceutil.GetMetaDefault(s, tagStatusCode, "")
 	if strC == "" {
@@ -47,22 +55,27 @@ func getStatusCode(s *pb.Span) uint32 {
 }
 
 // NewAggregationFromSpan creates a new aggregation from the provided span and env
-func NewAggregationFromSpan(s *pb.Span, env string, agentHostname string) Aggregation {
+func NewAggregationFromSpan(s *pb.Span, env string, agentHostname, containerID string) Aggregation {
 	synthetics := strings.HasPrefix(traceutil.GetMetaDefault(s, tagOrigin, ""), tagSynthetics)
 	hostname := traceutil.GetMetaDefault(s, tagHostname, "")
 	if hostname == "" {
 		hostname = agentHostname
 	}
 	return Aggregation{
-		Env:        env,
-		Resource:   s.Resource,
-		Service:    s.Service,
-		Name:       s.Name,
-		Type:       s.Type,
-		Hostname:   hostname,
-		StatusCode: getStatusCode(s),
-		Version:    traceutil.GetMetaDefault(s, tagVersion, ""),
-		Synthetics: synthetics,
+		PayloadAggregationKey: PayloadAggregationKey{
+			Env:         env,
+			Hostname:    hostname,
+			Version:     traceutil.GetMetaDefault(s, tagVersion, ""),
+			ContainerID: containerID,
+		},
+		BucketsAggregationKey: BucketsAggregationKey{
+			Resource:   s.Resource,
+			Service:    s.Service,
+			Name:       s.Name,
+			Type:       s.Type,
+			StatusCode: getStatusCode(s),
+			Synthetics: synthetics,
+		},
 	}
 }
 
