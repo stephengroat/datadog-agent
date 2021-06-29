@@ -8,7 +8,7 @@
 # This will copy the whole file tree from COOKBOOK_NAME/files/default/tests
 # to the directory where RSpec is expecting them.
 testdir = value_for_platform(
-  'windows' => { 'default' => "#{ENV['TEMP']}\\system-probe-tests" },
+  'windows' => { 'default' => ::File.join(Chef::Config[:file_cache_path], 'system-probe-tests') },
   'default' => '/tmp/system-probe-tests'
 )
 
