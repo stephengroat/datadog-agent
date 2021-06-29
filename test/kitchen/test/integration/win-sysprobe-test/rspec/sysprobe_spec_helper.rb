@@ -25,7 +25,7 @@ class CustomFormatter
 
   def dump_summary(notification)
     @output << "Finished in #{RSpec::Core::Formatters::Helpers.format_duration(notification.duration)}.\n"
-    @output << "Platform: #{`Get-WmiObject Win32_OperatingSystem | Select Caption, OSArchitecture, Version, BuildNumber | FL`}\n\n"
+    @output << "Platform: #{`Powershell -C \"Get-WmiObject Win32_OperatingSystem | Select Caption, OSArchitecture, Version, BuildNumber | FL\"`}\n\n"
   end
 
   def dump_failures(notification) # ExamplesNotification

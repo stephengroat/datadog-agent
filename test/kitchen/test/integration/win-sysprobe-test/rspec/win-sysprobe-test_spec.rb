@@ -20,7 +20,7 @@ def check_output(output, wait_thr)
   test_failures
 end
 
-print `Get-WmiObject Win32_OperatingSystem | Select Caption, OSArchitecture, Version, BuildNumber | FL`
+print `Powershell -C "Get-WmiObject Win32_OperatingSystem | Select Caption, OSArchitecture, Version, BuildNumber | FL"`
 
 wait_until_service_stopped('datadog-agent-sysprobe')
 
