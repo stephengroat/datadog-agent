@@ -24,10 +24,11 @@ print `Powershell -C "Get-WmiObject Win32_OperatingSystem | Select Caption, OSAr
 
 wait_until_service_stopped('datadog-agent-sysprobe')
 
-root_dir = "#{ENV['USERPROFILE']}\\AppData\\Local\\Temp\\kitchen\\cache\\system-probe-tests"
+root_dir = "#{ENV['USERPROFILE']}\\AppData\\Local\\Temp\\kitchen\\cache\\system-probe-tests".gsub("\\", File::SEPARATOR)
 print root_dir
+print Dir.entries(root_dir)
 
-Dir.glob(::File.join(root_dir, '**', 'testsuite')).each do |f|
+Dir.glob("#{root_dir}/**/testsuite").each do |f|
   pkg = f.delete_prefix(root_dir).delete_suffix('/testsuite')
   describe "system-probe tests for #{pkg}" do
     it 'successfully runs' do
