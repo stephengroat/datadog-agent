@@ -24,7 +24,7 @@ print `Powershell -C "Get-WmiObject Win32_OperatingSystem | Select Caption, OSAr
 
 wait_until_service_stopped('datadog-agent-sysprobe')
 
-root_dir = ::File.join(Chef::Config[:file_cache_path], 'system-probe-tests')
+root_dir = "#{ENV['USERPROFILE']}\\AppData\\Local\\Temp\\kitchen\\cache\\system-probe-tests"
 print root_dir
 
 Dir.glob(::File.join(root_dir, '**', 'testsuite')).each do |f|
