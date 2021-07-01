@@ -22,6 +22,8 @@ remote_directory testdir do
   end
 end
 
-if !platform?('windows')
+if platform?('windows')
+  include_recipe "::windows"
+else
   include_recipe "::linux"
 end
