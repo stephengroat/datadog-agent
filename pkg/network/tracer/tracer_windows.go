@@ -71,6 +71,7 @@ func NewTracer(config *config.Config) (*Tracer, error) {
 	}
 
 	tr := &Tracer{
+		config:          config,
 		driverInterface: di,
 		stopChan:        make(chan struct{}),
 		timerInterval:   defaultPollInterval,
