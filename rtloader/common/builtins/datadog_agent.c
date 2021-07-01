@@ -35,7 +35,7 @@ static PyObject *set_check_metadata(PyObject *self, PyObject *args);
 static PyObject *set_external_tags(PyObject *self, PyObject *args);
 static PyObject *write_persistent_cache(PyObject *self, PyObject *args);
 static PyObject *read_persistent_cache(PyObject *self, PyObject *args);
-static PyObject *obfuscate_sql(PyObject *self, PyObject *args);
+static PyObject *obfuscate_sql(PyObject *self, PyObject *args, PyObject *kwargs);
 static PyObject *obfuscate_sql_exec_plan(PyObject *self, PyObject *args, PyObject *kwargs);
 
 static PyMethodDef methods[] = {
@@ -682,7 +682,7 @@ done:
     uses the `cb_obfuscate_sql()` callback to retrieve the value from the agent
     with CGO. If the callback has not been set `None` will be returned.
 */
-static PyObject *obfuscate_sql(PyObject *self, PyObject *args)
+static PyObject *obfuscate_sql(PyObject *self, PyObject *args, PyObject *kwargs)
 {
     // callback must be set
     if (cb_obfuscate_sql == NULL) {

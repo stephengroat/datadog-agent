@@ -32,6 +32,9 @@ type ObfuscationConfig struct {
 	// Mongo holds the obfuscation configuration for MongoDB queries.
 	Mongo JSONObfuscationConfig `mapstructure:"mongodb"`
 
+	// SQL holds the obfuscation configuration for SQL.
+	SQL SQLObfuscationConfig `mapstructure:"sql"`
+
 	// SQLExecPlan holds the obfuscation configuration for SQL Exec Plans. This is strictly for safety related obfuscation,
 	// not normalization. Normalization of exec plans is configured in SQLExecPlanNormalize.
 	SQLExecPlan JSONObfuscationConfig `mapstructure:"sql_exec_plan"`
@@ -67,6 +70,11 @@ type HTTPObfuscationConfig struct {
 // Enablable can represent any option that has an "enabled" boolean sub-field.
 type Enablable struct {
 	Enabled bool `mapstructure:"enabled"`
+}
+
+// SQLObfuscationConfig holds the obfuscation configuration for SQL.
+type SQLObfuscationConfig struct {
+	QuantizeSQLTables bool `mapstructure:"quantize_sql_tables" json:"quantize_sql_tables"`
 }
 
 // JSONObfuscationConfig holds the obfuscation configuration for sensitive
@@ -115,6 +123,16 @@ type WriterConfig struct {
 	// FlushPeriodSeconds specifies the frequency at which the writer's buffer
 	// will be flushed to the sender, in seconds. Fractions are permitted.
 	FlushPeriodSeconds float64 `mapstructure:"flush_period_seconds"`
+}
+
+// Option ...
+type Option func(*ObfuscationConfig)
+
+// OptionSQLConfig ...
+func OptionSQLConfig(sqlCfg SQLObfuscationConfig) Option {
+	return func(o *ObfuscationConfig) {
+		o.SQL = sqlCfg
+	}
 }
 
 func (c *AgentConfig) applyDatadogConfig() error {
