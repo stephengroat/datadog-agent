@@ -231,17 +231,33 @@ variables:
   - <<: *if_version_6
 
 .on_a6_manual:
-  - <<: *if_version_6
+  - <<: *if_not_version_6
+    when: never
+  - <<: *if_tagged_commit
     when: manual
     allow_failure: true
+    variables:
+      RELEASE_SUFFIX: -release
+  - when: manual
+    allow_failure: true
+    variables:
+      RELEASE_SUFFIX: ""
 
 .on_a7:
   - <<: *if_version_7
 
 .on_a7_manual:
-  - <<: *if_version_7
+  - <<: *if_not_version_7
+    when: never
+  - <<: *if_tagged_commit
     when: manual
     allow_failure: true
+    variables:
+      RELEASE_SUFFIX: -release
+  - when: manual
+    allow_failure: true
+    variables:
+      RELEASE_SUFFIX: ""
 
 .on_dev_branch_manual:
   - <<: *if_main_branch
@@ -262,12 +278,24 @@ variables:
 .on_main_a6:
   - <<: *if_not_version_6
     when: never
-  - <<: *if_main_branch
+  - <<: *if_not_main_branch
+    when: never
+  - <<: *if_tagged_commit
+    variables:
+      RELEASE_SUFFIX: -release
+  - variables:
+      RELEASE_SUFFIX: ""
 
 .on_main_a7:
   - <<: *if_not_version_7
     when: never
-  - <<: *if_main_branch
+  - <<: *if_not_main_branch
+    when: never
+  - <<: *if_tagged_commit
+    variables:
+      RELEASE_SUFFIX: -release
+  - variables:
+      RELEASE_SUFFIX: ""
 
 .on_tag_or_a7:
   - <<: *if_tagged_commit
@@ -444,9 +472,17 @@ variables:
 .on_all_builds_a6_manual:
   - <<: *if_not_version_6
     when: never
-  - <<: *if_run_all_builds
+  - <<: *if_not_run_all_builds
+    when: never
+  - <<: *if_tagged_commit
     when: manual
     allow_failure: true
+    variables:
+      RELEASE_SUFFIX: -release
+  - when: manual
+    allow_failure: true
+    variables:
+      RELEASE_SUFFIX: ""
 
 .on_all_builds_a7:
   - <<: *if_not_version_7
@@ -456,9 +492,17 @@ variables:
 .on_all_builds_a7_manual:
   - <<: *if_not_version_7
     when: never
-  - <<: *if_run_all_builds
+  - <<: *if_not_run_all_builds
+    when: never
+  - <<: *if_tagged_commit
     when: manual
     allow_failure: true
+    variables:
+      RELEASE_SUFFIX: -release
+  - when: manual
+    allow_failure: true
+    variables:
+      RELEASE_SUFFIX: ""
 
 .on_kitchen_tests_a6:
   - <<: *if_not_version_6
