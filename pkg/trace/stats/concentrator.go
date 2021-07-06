@@ -167,7 +167,7 @@ func (c *Concentrator) Flush() pb.StatsPayload {
 }
 
 func (c *Concentrator) flushNow(now int64) pb.StatsPayload {
-	m := make(map[PayloadKey][]pb.ClientStatsBucket)
+	m := make(map[PayloadAggregationKey][]pb.ClientStatsBucket)
 
 	c.mu.Lock()
 	for ts, srb := range c.buckets {

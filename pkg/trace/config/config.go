@@ -7,7 +7,6 @@ package config
 
 import (
 	"bytes"
-	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -135,12 +134,7 @@ type Tag struct {
 
 // New returns a configuration with the default values.
 func New() *AgentConfig {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	isFargate := fargate.IsFargateInstance(ctx)
-	cancel()
-	if err := ctx.Err(); err != nil && err != context.Canceled {
-		log.Errorf("Error detecting Fargate instance: %v. Assuming not. If you are in a Fargate instance, this will cause problems.", err)
-	}
+	isFargate := fargate.IsFargateInstance()
 	return &AgentConfig{
 		Enabled:    true,
 		IsFargate:  isFargate,
