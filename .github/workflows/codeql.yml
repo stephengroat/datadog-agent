@@ -43,7 +43,7 @@ jobs:
         # Override language selection by uncommenting this and choosing your languages
         with:
           languages: go, javascript, python, cpp
-          config-file: .github/workflows/codeql.yml
+          config-file: ./.github/codeql/codeql-config.yml
           queries: github/codeql-go/ql/src/RedundantCode@main
           setup-python-dependencies: false
           # TODO determine if this can be enabled
