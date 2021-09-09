@@ -1,8 +1,5 @@
 - description: Selectors for selecting the security-and-quality queries for a language
 - include:
-    kind:
-    - problem
-    - path-problem
     precision:
     - very-high
 - exclude:
