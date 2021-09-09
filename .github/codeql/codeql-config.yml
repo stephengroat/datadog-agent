@@ -1,0 +1,9 @@
+- description: Selectors for selecting the security-and-quality queries for a language
+- include:
+    precision:
+    - very-high
+- exclude:
+    deprecated: //
+- exclude:
+    query path: /^experimental\/.*/
+
