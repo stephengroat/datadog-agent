@@ -42,7 +42,7 @@ jobs:
           GOPATH: /home/runner/work/datadog-agent/go
         # Override language selection by uncommenting this and choosing your languages
         with:
-          languages: go, javascript, python, cpp
+          languages: go
           config-file: go/src/github.com/DataDog/datadog-agent/.github/codeql/codeql-config.yml
           queries: github/codeql-go/ql/src/RedundantCode@main
           setup-python-dependencies: false
