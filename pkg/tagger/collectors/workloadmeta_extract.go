@@ -21,10 +21,38 @@ import (
 )
 
 const (
+	// OrchestratorScopeEntityID defines the orchestrator scope entity ID
+	OrchestratorScopeEntityID = "internal://orchestrator-scope-entity-id"
+
 	podAnnotationPrefix              = "ad.datadoghq.com/"
 	podContainerTagsAnnotationFormat = podAnnotationPrefix + "%s.tags"
 	podTagsAnnotation                = podAnnotationPrefix + "tags"
 	podStandardLabelPrefix           = "tags.datadoghq.com/"
+
+	// Standard tag - Tag keys
+	tagKeyEnv     = "env"
+	tagKeyVersion = "version"
+	tagKeyService = "service"
+
+	// Standard K8s labels - Tag keys
+	tagKeyKubeAppName      = "kube_app_name"
+	tagKeyKubeAppInstance  = "kube_app_instance"
+	tagKeyKubeAppVersion   = "kube_app_version"
+	tagKeyKubeAppComponent = "kube_app_component"
+	tagKeyKubeAppPartOf    = "kube_app_part_of"
+	tagKeyKubeAppManagedBy = "kube_app_managed_by"
+
+	// Standard tag - Environment variables
+	envVarEnv     = "DD_ENV"
+	envVarVersion = "DD_VERSION"
+	envVarService = "DD_SERVICE"
+
+	// Docker label keys
+	dockerLabelEnv     = "com.datadoghq.tags.env"
+	dockerLabelVersion = "com.datadoghq.tags.version"
+	dockerLabelService = "com.datadoghq.tags.service"
+
+	autodiscoveryLabelTagsKey = "com.datadoghq.ad.tags"
 )
 
 var (
@@ -43,6 +71,8 @@ var (
 		"NOMAD_TASK_NAME":  "nomad_task",
 		"NOMAD_JOB_NAME":   "nomad_job",
 		"NOMAD_GROUP_NAME": "nomad_group",
+		"NOMAD_NAMESPACE":  "nomad_namespace",
+		"NOMAD_DC":         "nomad_dc",
 	}
 
 	orchCardOrchestratorEnvKeys = map[string]string{
@@ -61,6 +91,9 @@ var (
 
 		"io.rancher.stack.name":         "rancher_stack",
 		"io.rancher.stack_service.name": "rancher_service",
+
+		// Automatically extract git commit sha from image for source code integration
+		"org.opencontainers.image.revision": "git.commit.sha",
 	}
 
 	highCardOrchestratorLabels = map[string]string{
@@ -353,7 +386,7 @@ func (c *WorkloadMetaCollector) extractTagsFromPodOwner(pod *workloadmeta.Kubern
 		tags.AddLow(kubernetes.StatefulSetTagName, owner.Name)
 		for _, pvc := range pod.PersistentVolumeClaimNames {
 			if pvc != "" {
-				tags.AddLow("persistentvolumeclaim", pvc)
+				tags.AddLow(kubernetes.PersistentVolumeClaimTagName, pvc)
 			}
 		}
 
@@ -395,7 +428,7 @@ func (c *WorkloadMetaCollector) extractTagsFromPodContainer(pod *workloadmeta.Ku
 		tags.AddHigh("display_container_name", fmt.Sprintf("%s_%s", container.Name, pod.Name))
 	}
 
-	image := container.Image
+	image := podContainer.Image
 	tags.AddLow("image_name", image.Name)
 	tags.AddLow("short_image", image.ShortName)
 	tags.AddLow("image_tag", image.Tag)
@@ -534,4 +567,21 @@ func parseJSONValue(value string, tags *utils.TagList) error {
 	}
 
 	return nil
+}
+
+func parseContainerADTagsLabels(tags *utils.TagList, labelValue string) {
+	tagNames := []string{}
+	err := json.Unmarshal([]byte(labelValue), &tagNames)
+	if err != nil {
+		log.Debugf("Cannot unmarshal AD tags: %s", err)
+	}
+	for _, tag := range tagNames {
+		tagParts := strings.Split(tag, ":")
+		// skip if tag is not in expected k:v format
+		if len(tagParts) != 2 {
+			log.Debugf("Tag '%s' is not in k:v format", tag)
+			continue
+		}
+		tags.AddHigh(tagParts[0], tagParts[1])
+	}
 }
