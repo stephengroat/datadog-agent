@@ -15,6 +15,7 @@ import (
 	"github.com/DataDog/datadog-agent/pkg/status/health"
 	"github.com/DataDog/datadog-agent/pkg/util/log"
 	"github.com/DataDog/datadog-agent/pkg/util/retry"
+	"github.com/DataDog/datadog-agent/pkg/workloadmeta/telemetry"
 )
 
 var (
@@ -193,10 +194,6 @@ func (s *store) Subscribe(name string, filter *Filter) chan EventBundle {
 		filter: filter,
 	}
 
-	s.subscribersMut.Lock()
-	s.subscribers = append(s.subscribers, sub)
-	s.subscribersMut.Unlock()
-
 	var events []Event
 
 	s.storeMut.RLock()
@@ -236,6 +233,15 @@ func (s *store) Subscribe(name string, filter *Filter) chan EventBundle {
 	// the subscriber is not ready to receive events yet
 	notifyChannel(sub.name, sub.ch, events, false)
 
+	// From the moment we add the subscriber to the list, the store can try to
+	// send it events, that's why it's important that we do this after the line
+	// above. Otherwise, it can cause a deadlock.
+	s.subscribersMut.Lock()
+	s.subscribers = append(s.subscribers, sub)
+	s.subscribersMut.Unlock()
+
+	telemetry.Subscribers.Inc()
+
 	return sub.ch
 }
 
@@ -247,6 +253,7 @@ func (s *store) Unsubscribe(ch chan EventBundle) {
 	for i, sub := range s.subscribers {
 		if sub.ch == ch {
 			s.subscribers = append(s.subscribers[:i], s.subscribers[i+1:]...)
+			telemetry.Subscribers.Dec()
 			break
 		}
 	}
@@ -369,6 +376,7 @@ func (s *store) pull(ctx context.Context) {
 			err := c.Pull(ctx)
 			if err != nil {
 				log.Warnf("error pulling from collector %q: %s", id, err.Error())
+				telemetry.PullErrors.Inc(id)
 			}
 		}(id, c)
 	}
@@ -380,6 +388,8 @@ func (s *store) handleEvents(evs []CollectorEvent) {
 	for _, ev := range evs {
 		meta := ev.Entity.GetID()
 
+		telemetry.EventsReceived.Inc(string(meta.Kind), string(ev.Source))
+
 		entitiesOfKind, ok := s.store[meta.Kind]
 		if !ok {
 			s.store[meta.Kind] = make(map[string]sourceToEntity)
@@ -390,15 +400,22 @@ func (s *store) handleEvents(evs []CollectorEvent) {
 
 		switch ev.Type {
 		case EventTypeSet:
-			entityOfSource, ok := entitiesOfKind[meta.ID]
 			if !ok {
 				entitiesOfKind[meta.ID] = make(sourceToEntity)
 				entityOfSource = entitiesOfKind[meta.ID]
 			}
 
+			if _, found := entityOfSource[ev.Source]; !found {
+				telemetry.StoredEntities.Inc(string(meta.Kind), string(ev.Source))
+			}
+
 			entityOfSource[ev.Source] = ev.Entity
 		case EventTypeUnset:
 			if ok {
+				if _, found := entityOfSource[ev.Source]; found {
+					telemetry.StoredEntities.Dec(string(meta.Kind), string(ev.Source))
+				}
+
 				delete(entityOfSource, ev.Source)
 
 				if len(entityOfSource) == 0 {
@@ -522,8 +539,10 @@ func notifyChannel(name string, ch chan EventBundle, events []Event, wait bool) 
 		select {
 		case <-bundle.Ch:
 			timer.Stop()
+			telemetry.NotificationsSent.Inc(name, telemetry.StatusSuccess)
 		case <-timer.C:
 			log.Warnf("collector %q did not close the event bundle channel in time, continuing with downstream collectors. bundle dump: %+v", name, bundle)
+			telemetry.NotificationsSent.Inc(name, telemetry.StatusError)
 		}
 	}
 }

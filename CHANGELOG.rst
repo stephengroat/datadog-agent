@@ -2,6 +2,71 @@
 Release Notes
 =============
 
+.. _Release Notes_7.32.3:
+
+7.32.3 / 6.32.3
+======
+
+.. _Release Notes_7.32.3_Prelude:
+
+Prelude
+-------
+
+Release on: 2021-12-15
+
+.. _Release Notes_7.32.3_Security Notes:
+
+- Upgrade the log4j dependency to 2.12.2 in JMXFetch to fully address `CVE-2021-44228 <https://nvd.nist.gov/vuln/detail/CVE-2021-44228>`_ and `CVE-2021-45046 <https://nvd.nist.gov/vuln/detail/CVE-2021-45046>`_
+
+.. _Release Notes_7.32.2:
+
+7.32.2 / 6.32.2
+======
+
+.. _Release Notes_7.32.2_Prelude:
+
+Prelude
+-------
+
+Release on: 2021-12-11
+
+
+.. _Release Notes_7.32.2_Security Notes:
+
+Security Notes
+--------------
+
+- Set ``-Dlog4j2.formatMsgNoLookups=True`` when starting the JMXfetch process to mitigate vulnerability described in `CVE-2021-44228 <https://nvd.nist.gov/vuln/detail/CVE-2021-44228>`_
+
+
+.. _Release Notes_7.32.1:
+
+7.32.1 / 6.32.1
+======
+
+.. _Release Notes_7.32.1_Prelude:
+
+Prelude
+-------
+
+Release on: 2021-11-18
+
+
+.. _Release Notes_7.32.1_Bug Fixes:
+
+Bug Fixes
+---------
+
+- On ECS, fix the volume of calls to `ListTagsForResource` which led to ECS API throttling.
+
+- Fix incorrect use of a namespaced PID with the host procfs when parsing mountinfo to ensure debugfs is mounted correctly.
+  This issue was preventing system-probe startup in AWS ECS. This issue could also surface in other containerized environments
+  where PID namespaces are in use and ``/host/proc`` is mounted.
+
+- Fixes system-probe startup failure due to kernel version parsing on Linux 4.14.252+.
+  This specifically was affecting versions of Amazon Linux 2, but could affect any Linux kernel in the 4.14 tree with sublevel >= 252.
+
+
 .. _Release Notes_7.32.0:
 
 7.32.0 / 6.32.0

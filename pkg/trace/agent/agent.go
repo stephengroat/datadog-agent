@@ -11,14 +11,15 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/DataDog/datadog-agent/pkg/obfuscate"
 	"github.com/DataDog/datadog-agent/pkg/trace/api"
 	"github.com/DataDog/datadog-agent/pkg/trace/config"
 	"github.com/DataDog/datadog-agent/pkg/trace/config/features"
 	"github.com/DataDog/datadog-agent/pkg/trace/event"
 	"github.com/DataDog/datadog-agent/pkg/trace/filters"
 	"github.com/DataDog/datadog-agent/pkg/trace/info"
+	"github.com/DataDog/datadog-agent/pkg/trace/metrics"
 	"github.com/DataDog/datadog-agent/pkg/trace/metrics/timing"
-	"github.com/DataDog/datadog-agent/pkg/trace/obfuscate"
 	"github.com/DataDog/datadog-agent/pkg/trace/pb"
 	"github.com/DataDog/datadog-agent/pkg/trace/sampler"
 	"github.com/DataDog/datadog-agent/pkg/trace/stats"
@@ -52,7 +53,11 @@ type Agent struct {
 
 	// obfuscator is used to obfuscate sensitive data from various span
 	// tags based on their type.
-	obfuscator *obfuscate.Obfuscator
+	obfuscator     *obfuscate.Obfuscator
+	cardObfuscator *ccObfuscator
+
+	// ModifySpan will be called on all spans, if non-nil.
+	ModifySpan func(*pb.Span)
 
 	// In takes incoming payloads to be processed by the agent.
 	In chan *api.Payload
@@ -71,6 +76,10 @@ func NewAgent(ctx context.Context, conf *config.AgentConfig) *Agent {
 	in := make(chan *api.Payload, 1000)
 	statsChan := make(chan pb.StatsPayload, 100)
 
+	oconf := conf.Obfuscation.Export()
+	if oconf.Statsd == nil {
+		oconf.Statsd = metrics.Client
+	}
 	agnt := &Agent{
 		Concentrator:          stats.NewConcentrator(conf, statsChan, time.Now()),
 		ClientStatsAggregator: stats.NewClientStatsAggregator(conf, statsChan),
@@ -83,7 +92,8 @@ func NewAgent(ctx context.Context, conf *config.AgentConfig) *Agent {
 		EventProcessor:        newEventProcessor(conf),
 		TraceWriter:           writer.NewTraceWriter(conf),
 		StatsWriter:           writer.NewStatsWriter(conf, statsChan),
-		obfuscator:            obfuscate.NewObfuscator(conf.Obfuscation),
+		obfuscator:            obfuscate.NewObfuscator(oconf),
+		cardObfuscator:        newCreditCardsObfuscator(conf.Obfuscation.CreditCards),
 		In:                    in,
 		conf:                  conf,
 		ctx:                   ctx,
@@ -169,6 +179,8 @@ func (a *Agent) loop() {
 				a.EventProcessor,
 				a.OTLPReceiver,
 				a.obfuscator,
+				a.obfuscator,
+				a.cardObfuscator,
 			} {
 				stopper.Stop()
 			}
@@ -241,7 +253,10 @@ func (a *Agent) Process(p *api.Payload) {
 					traceutil.SetMeta(span, k, v)
 				}
 			}
-			a.obfuscator.Obfuscate(span)
+			if a.ModifySpan != nil {
+				a.ModifySpan(span)
+			}
+			a.obfuscateSpan(span)
 			Truncate(span)
 			if p.ClientComputedTopLevel {
 				traceutil.UpdateTracerTopLevel(span)
@@ -346,7 +361,7 @@ func (a *Agent) processStats(in pb.ClientStatsPayload, lang, tracerVersion strin
 			if !a.Blacklister.AllowsStat(&b) {
 				continue
 			}
-			a.obfuscator.ObfuscateStatsGroup(&b)
+			a.obfuscateStatsGroup(&b)
 			a.Replacer.ReplaceStatsGroup(&b)
 			group.Stats[n] = b
 			n++

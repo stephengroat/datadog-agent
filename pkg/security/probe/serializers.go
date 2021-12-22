@@ -1,4 +1,4 @@
-//go:generate go run github.com/mailru/easyjson/easyjson -no_std_marshalers -build_tags linux $GOFILE
+//go:generate go run github.com/mailru/easyjson/easyjson -gen_build_flags=-mod=mod -no_std_marshalers -build_tags linux $GOFILE
 //go:generate go run github.com/DataDog/datadog-agent/pkg/security/probe/doc_generator -output ../../../docs/cloud-workload-security/backend.schema.json
 
 // Unless explicitly stated otherwise all files in this repository are licensed
@@ -16,13 +16,6 @@ import (
 
 	"github.com/DataDog/datadog-agent/pkg/security/secl/compiler/eval"
 	"github.com/DataDog/datadog-agent/pkg/security/secl/model"
-)
-
-// Event categories for JSON serialization
-const (
-	FIMCategory     = "File Activity"
-	ProcessActivity = "Process Activity"
-	KernelActivity  = "Kernel Activity"
 )
 
 // FileSerializer serializes a file to JSON
@@ -334,19 +327,7 @@ func newCredentialsSerializer(ce *model.Credentials) *CredentialsSerializer {
 }
 
 func scrubArgs(pr *model.Process, e *Event) ([]string, bool) {
-	argv, truncated := e.resolvers.ProcessResolver.GetProcessArgv(pr)
-
-	// scrub args, do not send args if no scrubber instance is passed
-	// can be the case for some custom event
-	if e.scrubber == nil {
-		argv = []string{}
-	} else {
-		if newArgv, changed := e.scrubber.ScrubCommand(argv); changed {
-			argv = newArgv
-		}
-	}
-
-	return argv, truncated
+	return e.resolvers.ProcessResolver.GetScrubbedProcessArgv(pr)
 }
 
 func scrubEnvs(pr *model.Process, e *Event) ([]string, bool) {
@@ -531,8 +512,7 @@ func serializeSyscallRetval(retval int64) string {
 func NewEventSerializer(event *Event) *EventSerializer {
 	s := &EventSerializer{
 		EventContextSerializer: EventContextSerializer{
-			Name:     model.EventType(event.Type).String(),
-			Category: FIMCategory,
+			Name: model.EventType(event.Type).String(),
 		},
 		ProcessContextSerializer: newProcessContextSerializer(event.ResolveProcessCacheEntry(), event, event.resolvers),
 		DDContextSerializer:      newDDContextSerializer(event),
@@ -548,7 +528,11 @@ func NewEventSerializer(event *Event) *EventSerializer {
 	s.UserContextSerializer.User = s.ProcessContextSerializer.User
 	s.UserContextSerializer.Group = s.ProcessContextSerializer.Group
 
-	switch model.EventType(event.Type) {
+	eventType := model.EventType(event.Type)
+
+	s.Category = model.GetEventTypeCategory(eventType.String())
+
+	switch eventType {
 	case model.FileChmodEventType:
 		s.FileEventSerializer = &FileEventSerializer{
 			FileSerializer: *newFileSerializer(&event.Chmod.File, event),
@@ -674,7 +658,6 @@ func NewEventSerializer(event *Event) *EventSerializer {
 			FSUser: event.ResolveSetuidFSUser(&event.SetUID),
 		}
 		s.EventContextSerializer.Outcome = serializeSyscallRetval(0)
-		s.Category = ProcessActivity
 	case model.SetgidEventType:
 		s.ProcessContextSerializer.Credentials.Destination = &SetgidSerializer{
 			GID:     int(event.SetGID.GID),
@@ -685,37 +668,30 @@ func NewEventSerializer(event *Event) *EventSerializer {
 			FSGroup: event.ResolveSetgidFSGroup(&event.SetGID),
 		}
 		s.EventContextSerializer.Outcome = serializeSyscallRetval(0)
-		s.Category = ProcessActivity
 	case model.CapsetEventType:
 		s.ProcessContextSerializer.Credentials.Destination = &CapsetSerializer{
 			CapEffective: model.KernelCapability(event.Capset.CapEffective).StringArray(),
 			CapPermitted: model.KernelCapability(event.Capset.CapPermitted).StringArray(),
 		}
 		s.EventContextSerializer.Outcome = serializeSyscallRetval(0)
-		s.Category = ProcessActivity
 	case model.ForkEventType:
 		s.EventContextSerializer.Outcome = serializeSyscallRetval(0)
-		s.Category = ProcessActivity
 	case model.ExitEventType:
 		s.EventContextSerializer.Outcome = serializeSyscallRetval(0)
-		s.Category = ProcessActivity
 	case model.ExecEventType:
 		s.FileEventSerializer = &FileEventSerializer{
 			FileSerializer: *newProcessFileSerializerWithResolvers(&event.processCacheEntry.Process, event.resolvers),
 		}
 		s.EventContextSerializer.Outcome = serializeSyscallRetval(0)
-		s.Category = ProcessActivity
 	case model.SELinuxEventType:
 		s.EventContextSerializer.Outcome = serializeSyscallRetval(0)
 		s.FileEventSerializer = &FileEventSerializer{
 			FileSerializer: *newFileSerializer(&event.SELinux.File, event),
 		}
 		s.SELinuxEventSerializer = newSELinuxSerializer(event)
-		s.Category = KernelActivity
 	case model.BPFEventType:
 		s.EventContextSerializer.Outcome = serializeSyscallRetval(0)
 		s.BPFEventSerializer = newBPFEventSerializer(event)
-		s.Category = KernelActivity
 	}
 
 	return s

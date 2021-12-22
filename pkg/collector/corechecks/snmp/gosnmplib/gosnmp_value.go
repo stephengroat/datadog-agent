@@ -1,3 +1,8 @@
+// Unless explicitly stated otherwise all files in this repository are licensed
+// under the Apache License Version 2.0.
+// This product includes software developed at Datadog (https://www.datadoghq.com/).
+// Copyright 2016-present Datadog, Inc.
+
 package gosnmplib
 
 import (
@@ -12,7 +17,6 @@ import (
 	"github.com/DataDog/datadog-agent/pkg/collector/corechecks/snmp/valuestore"
 )
 
-var specialCharsStripper = strings.NewReplacer("\r", "", "\n", "", "\t", "")
 var strippableSpecialChars = map[byte]bool{'\r': true, '\n': true, '\t': true}
 
 // GetValueFromPDU converts gosnmp.SnmpPDU to ResultValue
@@ -38,7 +42,7 @@ func GetValueFromPDU(pduVariable gosnmp.SnmpPDU) (string, valuestore.ResultValue
 			// An alternative solution is to explicitly force the conversion to specific type using profile config.
 			value = fmt.Sprintf("%#x", bytesValue)
 		} else {
-			value = specialCharsStripper.Replace(string(bytesValue))
+			value = string(bytesValue)
 		}
 	case gosnmp.Integer, gosnmp.Counter32, gosnmp.Gauge32, gosnmp.TimeTicks, gosnmp.Counter64, gosnmp.Uinteger32:
 		value = float64(gosnmp.ToBigInt(pduVariable.Value).Int64())

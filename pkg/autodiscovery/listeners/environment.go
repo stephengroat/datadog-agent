@@ -33,7 +33,7 @@ func init() {
 }
 
 // NewEnvironmentListener creates an EnvironmentListener
-func NewEnvironmentListener() (ServiceListener, error) {
+func NewEnvironmentListener(Config) (ServiceListener, error) {
 	return &EnvironmentListener{}, nil
 }
 
@@ -75,7 +75,7 @@ func (l *EnvironmentListener) createServices() {
 	if runtime.GOOS == "linux" {
 		containerFeatures = []config.Feature{config.Docker, config.Containerd, config.Kubernetes, config.ECSFargate}
 	} else if runtime.GOOS == "windows" {
-		containerFeatures = []config.Feature{config.Docker, config.Containerd}
+		containerFeatures = []config.Feature{config.Docker, config.Containerd, config.ECSFargate}
 	}
 
 	for _, f := range containerFeatures {

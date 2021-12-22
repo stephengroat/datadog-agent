@@ -1,3 +1,8 @@
+// Unless explicitly stated otherwise all files in this repository are licensed
+// under the Apache License Version 2.0.
+// This product includes software developed at Datadog (https://www.datadoghq.com/).
+// Copyright 2016-present Datadog, Inc.
+
 package gosnmplib
 
 import (
@@ -70,7 +75,7 @@ func Test_getValueFromPDU(t *testing.T) {
 				Value: []byte("m\ny\rV\ta\n\r\tl"),
 			},
 			"1.2.3",
-			valuestore.ResultValue{Value: "myVal"},
+			valuestore.ResultValue{Value: "m\ny\rV\ta\n\r\tl"},
 			nil,
 		},
 		{
