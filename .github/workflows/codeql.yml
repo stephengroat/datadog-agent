@@ -44,7 +44,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v1
         with:
-          languages: go, javascript, python, cpp
+          languages: go, cpp
           setup-python-dependencies: false
           config-file: .github/codeql_config.yml
           # Define a fixed CodeQL bundle version
