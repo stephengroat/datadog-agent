@@ -128,7 +128,7 @@ require (
 	github.com/google/go-cmp v0.5.6
 	github.com/google/gofuzz v1.2.0
 	github.com/google/gopacket v1.1.19
-	github.com/google/pprof v0.0.0-20210226084205-cbba55b83ad5
+	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1
 	github.com/gorilla/mux v1.8.0
 	github.com/gosnmp/gosnmp v1.32.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
@@ -156,7 +156,7 @@ require (
 	github.com/mdlayher/netlink v1.4.1
 	github.com/mholt/archiver/v3 v3.5.0
 	github.com/miekg/dns v1.1.43
-	github.com/mitchellh/mapstructure v1.4.2
+	github.com/mitchellh/mapstructure v1.4.3
 	github.com/moby/sys/mountinfo v0.4.1
 	github.com/mohae/deepcopy v0.0.0-20170603005431-491d3605edfb
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
@@ -175,7 +175,7 @@ require (
 	github.com/shirou/w32 v0.0.0-20160930032740-bb4de0191aa4
 	github.com/shuLhan/go-bindata v4.0.0+incompatible
 	github.com/spf13/afero v1.6.0
-	github.com/spf13/cobra v1.2.1
+	github.com/spf13/cobra v1.3.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
 	github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635
@@ -192,7 +192,7 @@ require (
 	github.com/vmihailenco/msgpack/v4 v4.3.12
 	github.com/xeipuuv/gojsonschema v0.0.0-20180618132009-1d523034197f
 	go.etcd.io/bbolt v1.3.6
-	go.etcd.io/etcd/client/v2 v2.305.0
+	go.etcd.io/etcd/client/v2 v2.305.1
 	go.opentelemetry.io/collector v0.38.0
 	go.opentelemetry.io/collector/model v0.38.0
 	// Fix vanity import issue
@@ -204,13 +204,13 @@ require (
 	golang.org/x/mobile v0.0.0-20201217150744-e6ae53a27f4f
 	golang.org/x/net v0.0.0-20210825183410-e898025ed96a
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20210923061019-b8560ed6a9b7
+	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d
 	golang.org/x/text v0.3.7
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
 	golang.org/x/tools v0.1.7
 	gomodules.xyz/jsonpatch/v3 v3.0.1
-	google.golang.org/genproto v0.0.0-20210604141403-392c879c8b08
-	google.golang.org/grpc v1.41.0
+	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa
+	google.golang.org/grpc v1.42.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.33.0
 	gopkg.in/Knetic/govaluate.v3 v3.0.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
