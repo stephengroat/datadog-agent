@@ -2,7 +2,7 @@
 invoke==1.6.0
 reno==3.5.0
 dulwich<0.20.27
-docker==5.0.3
+docker==6.0.1
 docker-squash==1.0.8
 requests==2.26.0
 PyYAML==6.0
