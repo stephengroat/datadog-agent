@@ -81,7 +81,7 @@ require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/Microsoft/go-winio v0.5.1
-	github.com/Microsoft/hcsshim v0.9.0
+	github.com/Microsoft/hcsshim v0.9.7
 	github.com/alecthomas/jsonschema v0.0.0-20210526225647-edb03dcab7bc
 	github.com/alecthomas/participle v0.7.1
 	github.com/alecthomas/repr v0.0.0-20181024024818-d37bc2a10ba1
@@ -204,7 +204,7 @@ require (
 	golang.org/x/mobile v0.0.0-20201217150744-e6ae53a27f4f
 	golang.org/x/net v0.0.0-20210825183410-e898025ed96a
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
-	golang.org/x/sys v0.0.0-20210923061019-b8560ed6a9b7
+	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e
 	golang.org/x/text v0.3.7
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
 	golang.org/x/tools v0.1.7
