@@ -8,6 +8,6 @@ replace github.com/DataDog/datadog-agent/pkg/util/scrubber => ../scrubber
 
 require (
 	github.com/DataDog/datadog-agent/pkg/util/log v0.32.0-rc.6
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.8.2
 	golang.org/x/sys v0.0.0-20210510120138-977fb7262007
 )
