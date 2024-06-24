@@ -61,3 +61,61 @@ jobs:
           checkout_path: go/src/github.com/DataDog/datadog-agent
         env:
           GOPATH: /home/runner/work/datadog-agent/go
+
+  CodeQL-Build-Windows:
+    # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          path: go/src/github.com/DataDog/datadog-agent
+
+      - working-directory: go/src/github.com/DataDog/datadog-agent
+        run: |
+          pip install -r requirements.txt
+          echo "CODEQL_PYTHON=$(which python)" >> Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "$env:GOPATH/bin" >> Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "CGO_LDFLAGS= -L${env:GITHUB_WORKSPACE}/go/src/github.com/DataDog/datadog-agent/rtloader/build/rtloader -ldl " >> Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "CGO_CFLAGS= -I${env:GITHUB_WORKSPACE}/go/src/github.com/DataDog/datadog-agent/rtloader/include  -I${env:GITHUB_WORKSPACE}/go/src/github.com/DataDog/datadog-agent/rtloader/common " >> Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      # Initializes the CodeQL tools for scanning.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+        env:
+          GOPATH: /home/runner/work/datadog-agent/go
+        # Override language selection by uncommenting this and choosing your languages
+        with:
+          languages: go, javascript, python, cpp
+          setup-python-dependencies: false
+          # TODO determine if this can be enabled
+          source-root: go/src/github.com/DataDog/datadog-agent
+
+      # Autobuild attempts to build any compiled languages (C/C++, C#, or Java).
+      # If this step fails, then you should remove it and run the build manually (see below).
+      #- name: Autobuild
+      #  uses: github/codeql-action/autobuild@v1
+
+      # ℹ️ Command-line programs to run using the OS shell.
+      # 📚 https://git.io/JvXDl
+
+      # ✏️ If the Autobuild fails above, remove it and uncomment the following
+      #    three lines and modify them (or add more) to build your code if your
+      #    project uses a compiled language
+
+      - env:
+          GOPATH: /home/runner/work/datadog-agent/go
+        run: |
+          cd go/src/github.com/DataDog/datadog-agent
+          invoke -d install-tools
+          invoke -d deps
+          invoke agent.build -d --build-exclude=systemd
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
+        with:
+          checkout_path: go/src/github.com/DataDog/datadog-agent
+        env:
+          GOPATH: /home/runner/work/datadog-agent/go
